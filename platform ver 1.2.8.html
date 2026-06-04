@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Репетитор — личные кабинеты</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="window._katexReady=true"></script>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --bg2: #ffffff;
+    --border: #e0ddd5;
+    --text: #1a1a1a;
+    --text2: #555;
+    --text3: #888;
+    --accent: #3b5bdb;
+    --accent-bg: #eef2ff;
+    --green: #2f9e44;
+    --green-bg: #ebfbee;
+    --red: #c92a2a;
+    --red-bg: #fff5f5;
+    --yellow-bg: #fff9db;
+    --yellow: #e67700;
+    --shadow: 0 1px 4px rgba(0,0,0,0.08);
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  input, textarea, select, button { font-family: inherit; }
+
+  /* ---------- AUTH SCREEN ---------- */
+  #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; }
+  .auth-box { background: var(--bg2); border-radius: var(--radius); padding: 2.5rem; width: 100%; max-width: 360px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+  .auth-box h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .auth-box p { font-size: 0.85rem; color: var(--text2); margin-bottom: 1.5rem; }
+  .auth-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+  .tab-btn { flex: 1; padding: 8px; border: 1px solid var(--border); background: transparent; border-radius: 8px; font-size: 0.85rem; cursor: pointer; color: var(--text2); }
+  .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .field { margin-bottom: 1rem; }
+  .field label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
+  .field input, .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; background: var(--bg2); color: var(--text); }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+  .btn-primary { width: 100%; padding: 10px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; }
+  .btn-primary:hover { opacity: 0.9; }
+  .error-msg { color: var(--red); font-size: 0.82rem; margin-top: 0.75rem; text-align: center; }
+
+  /* ---------- MAIN LAYOUT ---------- */
+  #app { display: none; min-height: 100vh; }
+  .topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 1.5rem; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar h2 { font-size: 0.95rem; font-weight: 600; }
+  .topbar-role { font-size: 0.75rem; padding: 3px 9px; border-radius: 20px; font-weight: 500; }
+  .role-tutor { background: var(--accent-bg); color: var(--accent); }
+  .role-student { background: var(--green-bg); color: var(--green); }
+  .btn-sm { padding: 6px 14px; border: 1px solid var(--border); background: transparent; border-radius: 7px; font-size: 0.82rem; cursor: pointer; color: var(--text2); }
+  .btn-sm:hover { background: var(--bg); }
+  .btn-danger-sm { border-color: #ffc9c9; color: var(--red); }
+  .btn-danger-sm:hover { background: var(--red-bg); }
+
+  /* ---------- TUTOR PANEL ---------- */
+  #tutor-panel { display: none; }
+  .tutor-layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 52px); }
+  .sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 1.25rem 1rem; }
+  .sidebar h3 { font-size: 0.78rem; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+  .student-item { padding: 9px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; border: 1px solid transparent; transition: all 0.15s; }
+  .student-item:hover { background: var(--bg); border-color: var(--border); }
+  .student-item.active { background: var(--accent-bg); border-color: #c5d0ff; }
+  .student-item .sname { font-size: 0.875rem; font-weight: 500; color: var(--text); }
+  .student-item .slogin { font-size: 0.75rem; color: var(--text3); }
+  .del-btn { font-size: 0.75rem; color: var(--text3); cursor: pointer; padding: 2px 5px; border-radius: 4px; opacity: 0; }
+  .student-item:hover .del-btn { opacity: 1; }
+  .del-btn:hover { background: var(--red-bg); color: var(--red); }
+  .add-student-form { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .add-student-form input { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 7px; font-size: 0.82rem; margin-bottom: 6px; background: var(--bg2); color: var(--text); }
+  .add-student-form input:focus { outline: none; border-color: var(--accent); }
+  .btn-add { width: 100%; padding: 8px; background: var(--accent); color: white; border: none; border-radius: 7px; font-size: 0.82rem; cursor: pointer; font-weight: 500; }
+
+  /* ---------- EDITOR ---------- */
+  .editor-area { padding: 1.5rem; background: var(--bg); }
+  .editor-empty { display: flex; align-items: center; justify-content: center; height: 400px; color: var(--text3); font-size: 0.9rem; }
+  .editor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .editor-header h2 { font-size: 1.1rem; font-weight: 600; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+  .tool-btn { padding: 7px 12px; border: 1px solid var(--border); background: var(--bg2); border-radius: 7px; font-size: 0.8rem; cursor: pointer; color: var(--text); display: flex; align-items: center; gap: 5px; }
+  .tool-btn:hover { background: var(--bg); border-color: #aaa; }
+  .tool-btn svg { width: 14px; height: 14px; }
+  .blocks-list { display: flex; flex-direction: column; gap: 10px; }
+  
+  /* BLOCKS */
+  .block { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; position: relative; }
+  .block-handle { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .block-type-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); }
+  .block-actions { display: flex; gap: 6px; }
+  .bact-btn { font-size: 0.75rem; padding: 3px 8px; border: 1px solid var(--border); border-radius: 5px; cursor: pointer; background: transparent; color: var(--text2); }
+  .bact-btn:hover { background: var(--bg); }
+  .bact-btn.remove { color: var(--red); border-color: #ffc9c9; }
+  .bact-btn.remove:hover { background: var(--red-bg); }
+  .block-content { padding: 14px; }
+  .block-content textarea { width: 100%; border: 1px solid var(--border); border-radius: 7px; padding: 9px 11px; font-size: 0.88rem; resize: vertical; min-height: 70px; background: var(--bg); color: var(--text); }
+  .block-content textarea:focus { outline: none; border-color: var(--accent); }
+  .block-content input { width: 100%; border: 1px solid var(--border); border-radius: 7px; padding: 9px 11px; font-size: 0.88rem; background: var(--bg); color: var(--text); }
+  .block-content input:focus { outline: none; border-color: var(--accent); }
+  .block-content label { font-size: 0.78rem; color: var(--text2); display: block; margin-bottom: 5px; font-weight: 500; }
+  .formula-preview { margin-top: 8px; padding: 10px; background: var(--bg); border-radius: 6px; font-size: 1rem; min-height: 40px; overflow-x: auto; }
+  .img-preview { max-width: 100%; max-height: 200px; border-radius: 6px; margin-top: 8px; display: block; }
+  .quiz-options { margin-top: 8px; }
+  .quiz-option-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .quiz-option-row input[type=text] { flex: 1; }
+  .quiz-option-row input[type=radio] { cursor: pointer; }
+  .quiz-option-row .rm-opt { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 1rem; padding: 0 4px; }
+  .add-opt-btn { font-size: 0.78rem; color: var(--accent); cursor: pointer; border: none; background: none; padding: 4px 0; text-decoration: underline; }
+  .save-btn { padding: 9px 20px; background: var(--green); color: white; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 500; cursor: pointer; }
+  .save-btn:hover { opacity: 0.9; }
+  .saved-notice { font-size: 0.8rem; color: var(--green); margin-left: 10px; opacity: 0; transition: opacity 0.3s; }
+  .saved-notice.show { opacity: 1; }
+  .github-info { background: var(--yellow-bg); border: 1px solid #ffe066; border-radius: 8px; padding: 10px 14px; font-size: 0.8rem; color: var(--yellow); margin-bottom: 1rem; }
+  .move-btn { font-size: 0.75rem; padding: 3px 6px; border: 1px solid var(--border); border-radius: 5px; cursor: pointer; background: transparent; color: var(--text3); }
+  .move-btn:hover { background: var(--bg); }
+
+  /* ---------- STUDENT VIEW ---------- */
+  #student-panel { display: none; }
+  .student-view { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .student-view h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .student-view .subtitle { color: var(--text3); font-size: 0.85rem; margin-bottom: 2rem; }
+  .view-block { margin-bottom: 1.5rem; }
+  .view-block h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .view-block h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .view-block p { font-size: 0.93rem; line-height: 1.7; color: var(--text); }
+  .view-block img { max-width: 100%; border-radius: 8px; }
+  .view-block .img-caption { font-size: 0.78rem; color: var(--text3); margin-top: 5px; }
+  .view-block .video-wrap { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 8px; overflow: hidden; }
+  .view-block .video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .view-block .formula-display { padding: 12px 16px; background: var(--bg); border-radius: 8px; overflow-x: auto; font-size: 1.05rem; }
+  .quiz-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .quiz-card .question { font-weight: 500; font-size: 0.93rem; margin-bottom: 12px; }
+  .quiz-opt { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 7px; margin-bottom: 6px; cursor: pointer; font-size: 0.88rem; transition: all 0.15s; }
+  .quiz-opt:hover { background: var(--bg); }
+  .quiz-opt.correct { background: var(--green-bg); border-color: #a9e6b8; color: var(--green); }
+  .quiz-opt.wrong { background: var(--red-bg); border-color: #ffc9c9; color: var(--red); }
+  .quiz-opt.selected { border-color: var(--accent); background: var(--accent-bg); }
+  .quiz-check-btn { margin-top: 8px; padding: 8px 18px; background: var(--accent); color: white; border: none; border-radius: 7px; font-size: 0.85rem; cursor: pointer; }
+  .quiz-result { margin-top: 10px; font-size: 0.85rem; font-weight: 500; }
+  .quiz-result.ok { color: var(--green); }
+  .quiz-result.fail { color: var(--red); }
+  .file-download-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); font-size: 0.875rem; font-weight: 500; }
+  .file-download-btn:hover { background: var(--bg); }
+  .divider-block { border: none; border-top: 1px solid var(--border); margin: 0.5rem 0; }
+  .callout-block { padding: 12px 16px; border-left: 3px solid var(--accent); background: var(--accent-bg); border-radius: 0 8px 8px 0; font-size: 0.9rem; line-height: 1.6; }
+  .text-block-view { font-size: 0.93rem; line-height: 1.8; }
+  .text-block-view h1 { font-size: 1.4rem; }
+  .text-block-view h2 { font-size: 1.15rem; }
+  .text-block-view h3 { font-size: 1rem; }
+
+  /* config modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; }
+  .modal { background: var(--bg2); border-radius: var(--radius); padding: 1.75rem; width: 100%; max-width: 420px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+  .modal h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+  .modal .field input { width: 100%; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; }
+
+  @media (max-width: 640px) {
+    .tutor-layout { grid-template-columns: 1fr; }
+    .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <h1>📐 Репетитор</h1>
+    <p>Личные кабинеты учеников</p>
+    <div class="auth-tabs">
+      <button class="tab-btn active" onclick="setAuthTab('tutor')">Репетитор</button>
+      <button class="tab-btn" onclick="setAuthTab('student')">Ученик</button>
+    </div>
+    <div id="tab-tutor">
+      <div class="field"><label>Мастер-пароль</label><input type="password" id="tutor-pass" placeholder="Ваш пароль" onkeydown="if(e.key==='Enter')loginTutor()"></div>
+      <button class="btn-primary" onclick="loginTutor()">Войти как репетитор</button>
+    </div>
+    <div id="tab-student" style="display:none">
+      <div class="field"><label>Логин ученика</label><input type="text" id="stu-login" placeholder="Например: ivanov"></div>
+      <div class="field"><label>Пароль</label><input type="password" id="stu-pass" placeholder="Пароль"></div>
+      <button class="btn-primary" onclick="loginStudent()">Войти</button>
+    </div>
+    <div id="auth-error" class="error-msg"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2 id="topbar-title">📐 Репетитор</h2>
+      <span id="topbar-role" class="topbar-role role-tutor">Репетитор</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-sm" id="btn-github-settings" onclick="openGitHubModal()" title="GitHub Sync">⚙ GitHub</button>
+      <button class="btn-sm btn-danger-sm" onclick="logout()">Выйти</button>
+    </div>
+  </div>
+
+  <!-- TUTOR -->
+  <div id="tutor-panel">
+    <div class="tutor-layout">
+      <div class="sidebar">
+        <h3>Ученики</h3>
+        <div id="students-list"></div>
+        <div class="add-student-form">
+          <input type="text" id="new-name" placeholder="Имя (Иванов А.)">
+          <input type="text" id="new-login" placeholder="Логин (ivanov)">
+          <input type="password" id="new-password" placeholder="Пароль">
+          <button class="btn-add" onclick="addStudent()">+ Добавить</button>
+        </div>
+      </div>
+      <div class="editor-area" id="editor-area">
+        <div class="editor-empty" id="editor-empty">← Выберите ученика для редактирования</div>
+        <div id="editor-content" style="display:none">
+          <div class="editor-header">
+            <h2 id="editor-student-name">Страница ученика</h2>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="save-btn" onclick="savePage()">💾 Сохранить</button>
+              <span class="saved-notice" id="saved-notice">Сохранено!</span>
+            </div>
+          </div>
+          <div class="github-info" id="github-info" style="display:none">
+            ⚠ GitHub не настроен. Данные сохраняются только локально. <a href="#" onclick="openGitHubModal();return false;" style="color:var(--yellow)">Настроить →</a>
+          </div>
+          <div class="toolbar">
+            <button class="tool-btn" onclick="addBlock('heading')">📝 Заголовок</button>
+            <button class="tool-btn" onclick="addBlock('text')">✏️ Текст</button>
+            <button class="tool-btn" onclick="addBlock('formula')">∑ Формула</button>
+            <button class="tool-btn" onclick="addBlock('image')">🖼 Картинка</button>
+            <button class="tool-btn" onclick="addBlock('video')">▶ Видео</button>
+            <button class="tool-btn" onclick="addBlock('quiz')">❓ Тест</button>
+            <button class="tool-btn" onclick="addBlock('callout')">💡 Заметка</button>
+            <button class="tool-btn" onclick="addBlock('divider')">— Разделитель</button>
+            <button class="tool-btn" onclick="addBlock('file')">📎 Файл-ссылка</button>
+          </div>
+          <div class="blocks-list" id="blocks-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STUDENT -->
+  <div id="student-panel">
+    <div class="student-view">
+      <h1 id="sv-name">Добро пожаловать</h1>
+      <p class="subtitle" id="sv-subtitle">Ваши учебные материалы</p>
+      <div id="sv-blocks"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GitHub Modal -->
+<div id="github-modal" style="display:none" class="modal-overlay">
+  <div class="modal">
+    <h3>⚙ Настройка GitHub Sync</h3>
+    <p style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem;">Данные будут сохраняться в ваш репозиторий. Создайте Personal Access Token с правом <code>repo</code> на <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a>.</p>
+    <div class="field"><label>GitHub Username</label><input type="text" id="gh-user" placeholder="your-username"></div>
+    <div class="field"><label>Репозиторий</label><input type="text" id="gh-repo" placeholder="my-tutor"></div>
+    <div class="field"><label>Personal Access Token</label><input type="password" id="gh-token" placeholder="ghp_..."></div>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="document.getElementById('github-modal').style.display='none'">Отмена</button>
+      <button class="btn-primary" style="width:auto;padding:8px 20px;" onclick="saveGitHubConfig()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA LAYER — localStorage with optional GitHub sync
+// ============================================================
+const MASTER_PASS = 'tutor123'; // ← СМЕНИТЕ на свой пароль
+const DEMO_STUDENTS = [
+  { name: 'Иванова Аня', login: 'anya', password: 'math1', blocks: [
+    { id: 'b1', type: 'heading', data: { text: 'Тема: Квадратные уравнения', level: 'h2' } },
+    { id: 'b2', type: 'text', data: { text: 'Квадратное уравнение — это уравнение вида ax² + bx + c = 0, где a ≠ 0. Решается через дискриминант.' } },
+    { id: 'b3', type: 'formula', data: { tex: 'D = b^2 - 4ac' } },
+    { id: 'b4', type: 'quiz', data: { question: 'Чему равен дискриминант уравнения x² - 5x + 6 = 0?', options: ['0', '1', '-1', '1'], correct: 1, hint: '' } },
+  ]},
+  { name: 'Петров Коля', login: 'kolya', password: 'geom2', blocks: [
+    { id: 'c1', type: 'heading', data: { text: 'Тема: Теорема Пифагора', level: 'h2' } },
+    { id: 'c2', type: 'callout', data: { text: 'В прямоугольном треугольнике квадрат гипотенузы равен сумме квадратов катетов.' } },
+    { id: 'c3', type: 'formula', data: { tex: 'a^2 + b^2 = c^2' } },
+  ]}
+];
+
+function getData() {
+  const d = localStorage.getItem('tutor_data');
+  if (d) return JSON.parse(d);
+  const init = { students: DEMO_STUDENTS };
+  localStorage.setItem('tutor_data', JSON.stringify(init));
+  return init;
+}
+function setData(d) { localStorage.setItem('tutor_data', JSON.stringify(d)); }
+function getGH() { const d = localStorage.getItem('gh_config'); return d ? JSON.parse(d) : null; }
+function setGH(cfg) { localStorage.setItem('gh_config', JSON.stringify(cfg)); }
+
+// ============================================================
+// AUTH
+// ============================================================
+let currentRole = null, currentStudent = null;
+
+function setAuthTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='tutor')||(i===1&&tab==='student')));
+  document.getElementById('tab-tutor').style.display = tab==='tutor'?'block':'none';
+  document.getElementById('tab-student').style.display = tab==='student'?'block':'none';
+  document.getElementById('auth-error').textContent='';
+}
+
+function loginTutor() {
+  const pass = document.getElementById('tutor-pass').value;
+  if (pass !== MASTER_PASS) { document.getElementById('auth-error').textContent='Неверный пароль'; return; }
+  currentRole = 'tutor';
+  document.getElementById('topbar-role').textContent = '🎓 Репетитор';
+  document.getElementById('topbar-role').className = 'topbar-role role-tutor';
+  document.getElementById('btn-github-settings').style.display = '';
+  showApp('tutor');
+}
+
+function loginStudent() {
+  const login = document.getElementById('stu-login').value.trim().toLowerCase();
+  const pass = document.getElementById('stu-pass').value;
+  const data = getData();
+  const stu = data.students.find(s => s.login === login && s.password === pass);
+  if (!stu) { document.getElementById('auth-error').textContent='Неверный логин или пароль'; return; }
+  currentRole = 'student';
+  currentStudent = stu;
+  document.getElementById('topbar-role').textContent = '📚 ' + stu.name;
+  document.getElementById('topbar-role').className = 'topbar-role role-student';
+  document.getElementById('btn-github-settings').style.display = 'none';
+  showApp('student');
+}
+
+function showApp(role) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('tutor-panel').style.display = role==='tutor'?'block':'none';
+  document.getElementById('student-panel').style.display = role==='student'?'block':'none';
+  if (role==='tutor') renderSidebar();
+  else renderStudentView();
+}
+
+function logout() {
+  currentRole=null; currentStudent=null; currentEditLogin=null;
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('tutor-pass').value='';
+  document.getElementById('stu-login').value='';
+  document.getElementById('stu-pass').value='';
+  document.getElementById('auth-error').textContent='';
+}
+
+// ============================================================
+// TUTOR — SIDEBAR
+// ============================================================
+function renderSidebar() {
+  const data = getData();
+  const list = document.getElementById('students-list');
+  list.innerHTML = '';
+  data.students.forEach(stu => {
+    const div = document.createElement('div');
+    div.className = 'student-item' + (currentEditLogin===stu.login?' active':'');
+    div.innerHTML = `<div><div class="sname">${esc(stu.name)}</div><div class="slogin">@${esc(stu.login)}</div></div>
+      <span class="del-btn" onclick="deleteStudent('${stu.login}',event)">✕</span>`;
+    div.onclick = (e) => { if(!e.target.classList.contains('del-btn')) openEditor(stu.login); };
+    list.appendChild(div);
+  });
+  const gh = getGH();
+  document.getElementById('github-info').style.display = gh?'none':'block';
+}
+
+function deleteStudent(login, e) {
+  e.stopPropagation();
+  if (!confirm('Удалить ученика и все его материалы?')) return;
+  const data = getData();
+  data.students = data.students.filter(s => s.login !== login);
+  setData(data);
+  if (currentEditLogin === login) { currentEditLogin=null; closeEditor(); }
+  renderSidebar();
+}
+
+function addStudent() {
+  const name = document.getElementById('new-name').value.trim();
+  const login = document.getElementById('new-login').value.trim().toLowerCase();
+  const password = document.getElementById('new-password').value.trim();
+  if (!name||!login||!password) { alert('Заполните все поля'); return; }
+  const data = getData();
+  if (data.students.find(s=>s.login===login)) { alert('Такой логин уже есть'); return; }
+  data.students.push({ name, login, password, blocks:[] });
+  setData(data);
+  document.getElementById('new-name').value='';
+  document.getElementById('new-login').value='';
+  document.getElementById('new-password').value='';
+  renderSidebar();
+  openEditor(login);
+}
+
+// ============================================================
+// EDITOR
+// ============================================================
+let currentEditLogin = null;
+
+function openEditor(login) {
+  currentEditLogin = login;
+  const data = getData();
+  const stu = data.students.find(s=>s.login===login);
+  document.getElementById('editor-empty').style.display='none';
+  document.getElementById('editor-content').style.display='block';
+  document.getElementById('editor-student-name').textContent = '📄 ' + stu.name;
+  renderBlocks(stu.blocks);
+  renderSidebar();
+}
+
+function closeEditor() {
+  document.getElementById('editor-empty').style.display='flex';
+  document.getElementById('editor-content').style.display='none';
+  renderSidebar();
+}
+
+function renderBlocks(blocks) {
+  const list = document.getElementById('blocks-list');
+  list.innerHTML = '';
+  blocks.forEach((block,idx) => {
+    list.appendChild(createBlockEl(block,idx,blocks.length));
+  });
+  renderAllFormulas();
+}
+
+function createBlockEl(block,idx,total) {
+  const div = document.createElement('div');
+  div.className = 'block';
+  div.dataset.id = block.id;
+  const typeNames = {heading:'Заголовок',text:'Текст',formula:'Формула',image:'Картинка',video:'Видео',quiz:'Тест',callout:'Заметка',divider:'Разделитель',file:'Файл'};
+  let content = '';
+  switch(block.type) {
+    case 'heading':
+      content = `<div class="block-content">
+        <label>Уровень</label>
+        <select onchange="updateBlock('${block.id}','level',this.value)" style="margin-bottom:8px;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text)">
+          <option value="h1"${block.data.level==='h1'?' selected':''}>H1 — Большой</option>
+          <option value="h2"${block.data.level==='h2'?' selected':''}>H2 — Средний</option>
+          <option value="h3"${block.data.level==='h3'?' selected':''}>H3 — Маленький</option>
+        </select>
+        <input type="text" value="${esc(block.data.text||'')}" placeholder="Текст заголовка" oninput="updateBlock('${block.id}','text',this.value)">
+      </div>`;
+      break;
+    case 'text':
+      content = `<div class="block-content"><textarea placeholder="Введите текст..." oninput="updateBlock('${block.id}','text',this.value)">${esc(block.data.text||'')}</textarea></div>`;
+      break;
+    case 'formula':
+      content = `<div class="block-content">
+        <label>LaTeX формула</label>
+        <input type="text" value="${esc(block.data.tex||'')}" placeholder="Например: x = \\frac{-b \\pm \\sqrt{D}}{2a}" oninput="updateBlock('${block.id}','tex',this.value);renderFormula(this,this.nextElementSibling)">
+        <div class="formula-preview" id="fp-${block.id}"></div>
+      </div>`;
+      break;
+    case 'image':
+      content = `<div class="block-content">
+        <label>URL картинки или base64</label>
+        <input type="text" value="${esc(block.data.url||'')}" placeholder="https://... или загрузите файл" oninput="updateBlock('${block.id}','url',this.value)">
+        <div style="margin-top:8px;"><label style="cursor:pointer;color:var(--accent);font-size:0.8rem;">📁 Выбрать файл <input type="file" accept="image/*" style="display:none" onchange="loadImage(event,'${block.id}')"></label></div>
+        ${block.data.url?`<img src="${block.data.url}" class="img-preview" onerror="this.style.display='none'">`: ''}
+        <label style="margin-top:8px;">Подпись</label>
+        <input type="text" value="${esc(block.data.caption||'')}" placeholder="Подпись к изображению" oninput="updateBlock('${block.id}','caption',this.value)">
+      </div>`;
+      break;
+    case 'video':
+      content = `<div class="block-content">
+        <label>Ссылка YouTube</label>
+        <input type="text" value="${esc(block.data.url||'')}" placeholder="https://youtube.com/watch?v=..." oninput="updateBlock('${block.id}','url',this.value)">
+        <label style="margin-top:8px;">Подпись</label>
+        <input type="text" value="${esc(block.data.caption||'')}" placeholder="Необязательно" oninput="updateBlock('${block.id}','caption',this.value)">
+      </div>`;
+      break;
+    case 'quiz':
+      const opts = block.data.options || ['','','',''];
+      const correct = block.data.correct || 0;
+      let optsHtml = opts.map((opt,oi) => `
+        <div class="quiz-option-row">
+          <input type="radio" name="qc-${block.id}" ${oi===correct?'checked':''} onchange="updateBlock('${block.id}','correct',${oi})" title="Правильный ответ">
+          <input type="text" value="${esc(opt)}" placeholder="Вариант ${oi+1}" oninput="updateOption('${block.id}',${oi},this.value)">
+          ${opts.length>2?`<button class="rm-opt" onclick="removeOption('${block.id}',${oi})">✕</button>`:''}
+        </div>`).join('');
+      content = `<div class="block-content">
+        <label>Вопрос</label>
+        <input type="text" value="${esc(block.data.question||'')}" placeholder="Задайте вопрос..." oninput="updateBlock('${block.id}','question',this.value)">
+        <label style="margin-top:10px;">Варианты ответов <small style="color:var(--text3)">(🔘 = правильный)</small></label>
+        <div class="quiz-options" id="qopts-${block.id}">${optsHtml}</div>
+        <button class="add-opt-btn" onclick="addOption('${block.id}')">+ Добавить вариант</button>
+        <label style="margin-top:8px;">Подсказка (показывается после ответа)</label>
+        <input type="text" value="${esc(block.data.hint||'')}" placeholder="Необязательно" oninput="updateBlock('${block.id}','hint',this.value)">
+      </div>`;
+      break;
+    case 'callout':
+      content = `<div class="block-content"><textarea placeholder="Текст заметки..." oninput="updateBlock('${block.id}','text',this.value)">${esc(block.data.text||'')}</textarea></div>`;
+      break;
+    case 'divider':
+      content = `<div class="block-content" style="color:var(--text3);font-size:0.82rem;">— горизонтальный разделитель —</div>`;
+      break;
+    case 'file':
+      content = `<div class="block-content">
+        <label>URL файла (Google Drive, Yandex Disk, GitHub raw и т.д.)</label>
+        <input type="text" value="${esc(block.data.url||'')}" placeholder="https://..." oninput="updateBlock('${block.id}','url',this.value)">
+        <label style="margin-top:8px;">Название кнопки скачивания</label>
+        <input type="text" value="${esc(block.data.label||'')}" placeholder="Скачать файл" oninput="updateBlock('${block.id}','label',this.value)">
+      </div>`;
+      break;
+  }
+  div.innerHTML = `
+    <div class="block-handle">
+      <span class="block-type-label">${typeNames[block.type]||block.type}</span>
+      <div class="block-actions">
+        ${idx>0?`<button class="move-btn" onclick="moveBlock('${block.id}',-1)">↑</button>`:''}
+        ${idx<total-1?`<button class="move-btn" onclick="moveBlock('${block.id}',1)">↓</button>`:''}
+        <button class="bact-btn remove" onclick="removeBlock('${block.id}')">Удалить</button>
+      </div>
+    </div>${content}`;
+  return div;
+}
+
+function addBlock(type) {
+  if (!currentEditLogin) return;
+  const data = getData();
+  const stu = data.students.find(s=>s.login===currentEditLogin);
+  const id = 'b' + Date.now();
+  const defaults = {
+    heading: { level:'h2', text:'' },
+    text: { text:'' },
+    formula: { tex:'' },
+    image: { url:'', caption:'' },
+    video: { url:'', caption:'' },
+    quiz: { question:'', options:['','','',''], correct:0, hint:'' },
+    callout: { text:'' },
+    divider: {},
+    file: { url:'', label:'Скачать' }
+  };
+  stu.blocks.push({ id, type, data: defaults[type] || {} });
+  setData(data);
+  renderBlocks(stu.blocks);
+  // scroll to last block
+  setTimeout(() => { const bl = document.getElementById('blocks-list'); if(bl.lastChild) bl.lastChild.scrollIntoView({behavior:'smooth'}); }, 50);
+}
+
+function removeBlock(id) {
+  const data = getData();
+  const stu = data.students.find(s=>s.login===currentEditLogin);
+  stu.blocks = stu.blocks.filter(b=>b.id!==id);
+  setData(data);
+  renderBlocks(stu.blocks);
+}
+
+function moveBlock(id, dir) {
+  const data = getData();
+  const stu = data.students.find(s=>s.login===currentEditLogin);
+  const idx = stu.blocks.findIndex(b=>b.id===id);
+  const newIdx = idx+dir;
+  if (newIdx<0||newIdx>=stu.blocks.length) return;
+  const tmp = stu.blocks[idx]; stu.blocks[idx]=stu.blocks[newIdx]; stu.blocks[newIdx]=tmp;
+  setData(data);
+  renderBlocks(stu.blocks);
+}
+
+function updateBlock(id, key, val) {
+  const data = getData();
+  const stu = data.students.find(s=>s.login===currentEditLogin);
+  const block = stu.blocks.find(b=>b.id===id);
+  if (block) block.data[key] = val;
+  setData(data);
+}
+
+function updateOption(blockId, optIdx, val) {
+  const data = getData();
+  const stu = data.students.find(s=>s.login===currentEditLogin);
+  const block = stu.blocks.find(b=>b.id===blockId);
+  if (block) block.data.options[optIdx] = val;
+  setData(data);
+}
+
+function addOption(blockId) {
+  const data = getData();
+  const stu = data.students.find(s=>s.login===currentEditLogin);
+  const block = stu.blocks.find(b=>b.id===blockId);
+  if (block && block.data.options.length<6) block.data.options.push('');
+  setData(data);
+  renderBlocks(stu.blocks);
+}
+
+function removeOption(blockId, optIdx) {
+  const data = getData();
+  const stu = data.students.find(s=>s.login===currentEditLogin);
+  const block = stu.blocks.find(b=>b.id===blockId);
+  if (block && block.data.options.length>2) {
+    block.data.options.splice(optIdx,1);
+    if (block.data.correct >= block.data.options.length) block.data.correct = 0;
+  }
+  setData(data);
+  renderBlocks(stu.blocks);
+}
+
+function loadImage(event, blockId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const data = getData();
+    const stu = data.students.find(s=>s.login===currentEditLogin);
+    const block = stu.blocks.find(b=>b.id===blockId);
+    if (block) block.data.url = e.target.result;
+    setData(data);
+    renderBlocks(stu.blocks);
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderFormula(input, previewEl) {
+  if (!window.katex) return;
+  try { previewEl.innerHTML=''; window.katex.render(input.value, previewEl, {displayMode:true,throwOnError:false}); }
+  catch(e) { previewEl.textContent = 'Ошибка в формуле'; }
+}
+
+function renderAllFormulas() {
+  if (!window.katex) { setTimeout(renderAllFormulas, 300); return; }
+  document.querySelectorAll('[id^="fp-"]').forEach(el => {
+    const bid = el.id.replace('fp-','');
+    const inp = el.previousElementSibling;
+    if (inp && inp.value) {
+      try { el.innerHTML=''; window.katex.render(inp.value, el, {displayMode:true,throwOnError:false}); }
+      catch(e){}
+    }
+  });
+}
+
+function savePage() {
+  const data = getData(); // already in sync since updateBlock saves constantly
+  const notice = document.getElementById('saved-notice');
+  notice.classList.add('show');
+  setTimeout(()=>notice.classList.remove('show'), 2000);
+  const gh = getGH();
+  if (gh) syncToGitHub(gh, data);
+}
+
+// ============================================================
+// STUDENT VIEW
+// ============================================================
+function renderStudentView() {
+  const stu = currentStudent;
+  document.getElementById('sv-name').textContent = stu.name;
+  document.getElementById('sv-subtitle').textContent = 'Ваши учебные материалы';
+  const container = document.getElementById('sv-blocks');
+  container.innerHTML = '';
+  (stu.blocks||[]).forEach(block => {
+    container.appendChild(createViewBlock(block));
+  });
+  if (window._katexReady || window.katex) {
+    setTimeout(()=>{
+      if(window.renderMathInElement) renderMathInElement(container,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+      container.querySelectorAll('.katex-render').forEach(el=>{
+        if(el.dataset.tex && window.katex) {
+          try { el.innerHTML=''; window.katex.render(el.dataset.tex,el,{displayMode:true,throwOnError:false}); }
+          catch(e){}
+        }
+      });
+    }, 200);
+  } else setTimeout(renderStudentView.bind(null,true), 500);
+}
+
+function createViewBlock(block) {
+  const div = document.createElement('div');
+  div.className = 'view-block';
+  switch(block.type) {
+    case 'heading': {
+      const tag = block.data.level||'h2';
+      div.innerHTML = `<${tag}>${esc(block.data.text||'')}</${tag}>`;
+      break;
+    }
+    case 'text':
+      div.innerHTML = `<p class="text-block-view">${(block.data.text||'').replace(/\n/g,'<br>')}</p>`;
+      break;
+    case 'formula':
+      div.innerHTML = `<div class="formula-display katex-render" data-tex="${esc(block.data.tex||'')}"></div>`;
+      break;
+    case 'image':
+      if (block.data.url) {
+        div.innerHTML = `<img src="${block.data.url}" alt="${esc(block.data.caption||'')}" style="max-width:100%;border-radius:8px;">
+          ${block.data.caption?`<p class="img-caption">${esc(block.data.caption)}</p>`:''}`;
+      }
+      break;
+    case 'video': {
+      const vid = ytId(block.data.url||'');
+      if (vid) {
+        div.innerHTML = `<div class="video-wrap"><iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen frameborder="0"></iframe></div>
+          ${block.data.caption?`<p class="img-caption" style="margin-top:6px">${esc(block.data.caption)}</p>`:''}`;
+      }
+      break;
+    }
+    case 'quiz': {
+      const qid = 'quiz-' + block.id;
+      const opts = block.data.options||[];
+      let optsHtml = opts.map((o,i)=>`<div class="quiz-opt" id="${qid}-opt-${i}" onclick="selectQuizOpt('${qid}',${i})">${esc(o||'Вариант '+(i+1))}</div>`).join('');
+      div.innerHTML = `<div class="quiz-card" id="${qid}">
+        <div class="question">${esc(block.data.question||'Вопрос')}</div>
+        ${optsHtml}
+        <button class="quiz-check-btn" onclick="checkQuiz('${qid}',${block.data.correct||0},'${esc(block.data.hint||'')}')">Проверить</button>
+        <div class="quiz-result" id="${qid}-result"></div>
+      </div>`;
+      break;
+    }
+    case 'callout':
+      div.innerHTML = `<div class="callout-block">${(block.data.text||'').replace(/\n/g,'<br>')}</div>`;
+      break;
+    case 'divider':
+      div.innerHTML = `<hr class="divider-block">`;
+      break;
+    case 'file':
+      if (block.data.url) {
+        div.innerHTML = `<a class="file-download-btn" href="${block.data.url}" target="_blank" download>
+          📎 ${esc(block.data.label||'Скачать файл')}</a>`;
+      }
+      break;
+  }
+  return div;
+}
+
+let quizSelections = {};
+function selectQuizOpt(qid, idx) {
+  document.querySelectorAll(`[id^="${qid}-opt-"]`).forEach(el=>el.classList.remove('selected'));
+  document.getElementById(`${qid}-opt-${idx}`)?.classList.add('selected');
+  quizSelections[qid] = idx;
+}
+function checkQuiz(qid, correct, hint) {
+  const sel = quizSelections[qid];
+  const res = document.getElementById(`${qid}-result`);
+  if (sel===undefined) { res.textContent='Выберите вариант'; res.className='quiz-result'; return; }
+  document.querySelectorAll(`[id^="${qid}-opt-"]`).forEach((el,i)=>{
+    el.classList.remove('selected','correct','wrong');
+    if(i===correct) el.classList.add('correct');
+    else if(i===sel) el.classList.add('wrong');
+  });
+  if (sel===correct) {
+    res.textContent = '✓ Правильно!' + (hint?' '+hint:'');
+    res.className = 'quiz-result ok';
+  } else {
+    res.textContent = '✗ Неверно.' + (hint?' Подсказка: '+hint:'');
+    res.className = 'quiz-result fail';
+  }
+}
+
+// ============================================================
+// GITHUB SYNC
+// ============================================================
+function openGitHubModal() {
+  const gh = getGH()||{};
+  document.getElementById('gh-user').value = gh.user||'';
+  document.getElementById('gh-repo').value = gh.repo||'';
+  document.getElementById('gh-token').value = gh.token||'';
+  document.getElementById('github-modal').style.display='flex';
+}
+function saveGitHubConfig() {
+  const cfg = { user:document.getElementById('gh-user').value.trim(), repo:document.getElementById('gh-repo').value.trim(), token:document.getElementById('gh-token').value.trim() };
+  if(!cfg.user||!cfg.repo||!cfg.token) { alert('Заполните все поля'); return; }
+  setGH(cfg);
+  document.getElementById('github-modal').style.display='none';
+  document.getElementById('github-info').style.display='none';
+  alert('✓ GitHub настроен! Данные будут синхронизироваться при сохранении.');
+}
+
+async function syncToGitHub(gh, data) {
+  const path = 'data/students.json';
+  const url = `https://api.github.com/repos/${gh.user}/${gh.repo}/contents/${path}`;
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+  try {
+    let sha = '';
+    const existing = await fetch(url, { headers:{'Authorization':'token '+gh.token} });
+    if (existing.ok) { const j=await existing.json(); sha=j.sha; }
+    await fetch(url, { method:'PUT', headers:{'Authorization':'token '+gh.token,'Content-Type':'application/json'},
+      body: JSON.stringify({ message:'Update student data', content, sha }) });
+  } catch(e) { console.error('GitHub sync error',e); }
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function ytId(url) {
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+
+// load student data from GitHub if configured
+async function tryLoadFromGitHub() {
+  const gh = getGH();
+  if (!gh) return;
+  try {
+    const url = `https://api.github.com/repos/${gh.user}/${gh.repo}/contents/data/students.json`;
+    const res = await fetch(url, { headers:{'Authorization':'token '+gh.token} });
+    if (!res.ok) return;
+    const j = await res.json();
+    const text = decodeURIComponent(escape(atob(j.content.replace(/\n/g,''))));
+    const data = JSON.parse(text);
+    localStorage.setItem('tutor_data', JSON.stringify(data));
+  } catch(e) {}
+}
+tryLoadFromGitHub();
+
+// keyboard shortcut: Enter in auth
+document.getElementById('stu-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') loginStudent(); });
+document.getElementById('tutor-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') loginTutor(); });
+</script>
+</body>
+</html>
