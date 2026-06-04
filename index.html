@@ -479,7 +479,7 @@ function renderHomework() {
   const rows = (stu.homeworks || []).map((hw, i) => `
     <div style="display:grid;grid-template-columns:1fr 160px 80px;gap:8px;margin-bottom:6px;">
       <input type="text" value="${esc(hw.title)}"
-        placeholder="Домашка"
+        placeholder="Домашние задания"
         oninput="updateHomework(${i},'title',this.value)">
       <input type="date" value="${hw.deadline || ''}"
         onchange="updateHomework(${i},'deadline',this.value)">
