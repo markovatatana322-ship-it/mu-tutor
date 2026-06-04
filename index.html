@@ -242,7 +242,9 @@
             <button class="tool-btn" onclick="addBlock('quiz')">❓ Тест</button>
             <button class="tool-btn" onclick="addBlock('callout')">💡 Заметка</button>
             <button class="tool-btn" onclick="addBlock('divider')">— Разделитель</button>
-            <button class="tool-btn" onclick="addBlock('file')">📎 Файл-ссылка</button>
+            <button class="tool-btn" onclick="addBlock('file')">📎 Файл-ссылка</button> 
+
+            <button class="tool-btn" onclick="addHomework()">📚 Домашнее задание</button>
           </div>
           <div class="blocks-list" id="blocks-list"></div>
         </div>
@@ -286,12 +288,13 @@ const DEMO_STUDENTS = [
     { id: 'b2', type: 'text', data: { text: 'Квадратное уравнение — это уравнение вида ax² + bx + c = 0, где a ≠ 0. Решается через дискриминант.' } },
     { id: 'b3', type: 'formula', data: { tex: 'D = b^2 - 4ac' } },
     { id: 'b4', type: 'quiz', data: { question: 'Чему равен дискриминант уравнения x² - 5x + 6 = 0?', options: ['0', '1', '-1', '1'], correct: 1, hint: '' } },
-  ]},
+  ]   homeworks: []},
   { name: 'Петров Коля', login: 'kolya', password: 'geom2', blocks: [
     { id: 'c1', type: 'heading', data: { text: 'Тема: Теорема Пифагора', level: 'h2' } },
     { id: 'c2', type: 'callout', data: { text: 'В прямоугольном треугольнике квадрат гипотенузы равен сумме квадратов катетов.' } },
     { id: 'c3', type: 'formula', data: { tex: 'a^2 + b^2 = c^2' } },
-  ]}
+  ]    homeworks: []}
+    { name: 'Иванова Алиса', login: 'alisa', password: 'uukkrt', blocks: []   homeworks: []},
 ];
 
 function getData() {
@@ -412,12 +415,19 @@ let currentEditLogin = null;
 
 function openEditor(login) {
   currentEditLogin = login;
+
   const data = getData();
-  const stu = data.students.find(s=>s.login===login);
-  document.getElementById('editor-empty').style.display='none';
-  document.getElementById('editor-content').style.display='block';
+  const stu = data.students.find(s => s.login === login);
+
+  document.getElementById('editor-empty').style.display = 'none';
+  document.getElementById('editor-content').style.display = 'block';
   document.getElementById('editor-student-name').textContent = '📄 ' + stu.name;
   renderBlocks(stu.blocks);
+
+  setTimeout(() => {
+    renderHomework();
+  }, 0);
+
   renderSidebar();
 }
 
@@ -436,6 +446,78 @@ function renderBlocks(blocks) {
   renderAllFormulas();
 }
 
+  
+
+function renderHomework() {
+  const data = getData();
+  const stu = data.students.find(s => s.login === currentEditLogin);
+  const list = document.getElementById('blocks-list');
+
+  const hwWrap = document.createElement('div');
+  hwWrap.className = 'block';
+
+  const rows = (stu.homeworks || []).map((hw, i) => `
+    <div style="display:grid;grid-template-columns:1fr 160px 80px;gap:8px;margin-bottom:6px;">
+      <input type="text" value="${esc(hw.title)}"
+        placeholder="Домашка"
+        oninput="updateHomework(${i},'title',this.value)">
+      <input type="date" value="${hw.deadline || ''}"
+        onchange="updateHomework(${i},'deadline',this.value)">
+      <button onclick="removeHomework(${i})">✕</button>
+    </div>
+  `).join('');
+
+  hwWrap.innerHTML = `
+    <div class="block-handle">
+      <span class="block-type-label">Домашние задания</span>
+      <div class="block-actions">
+        <button class="bact-btn" onclick="addHomework()">+ Добавить</button>
+      </div>
+    </div>
+    <div class="block-content">
+      ${rows || '<i>Нет заданий</i>'}
+    </div>
+  `;
+
+  list.prepend(hwWrap);
+}
+
+
+  function addHomework() {
+  const data = getData();
+  const stu = data.students.find(s => s.login === currentEditLogin);
+  if (!stu.homeworks) stu.homeworks = [];
+
+  stu.homeworks.push({
+    title: '',
+    deadline: ''
+  });
+
+  setData(data);
+  renderHomework();
+}
+
+function updateHomework(idx, key, val) {
+  const data = getData();
+  const stu = data.students.find(s => s.login === currentEditLogin);
+  if (!stu.homeworks) return;
+
+  stu.homeworks[idx][key] = val;
+  setData(data);
+}  
+
+  function removeHomework(idx) {
+  const data = getData();
+  const stu = data.students.find(s => s.login === currentEditLogin);
+  if (!stu.homeworks) return;
+
+  stu.homeworks.splice(idx, 1);
+  setData(data);
+  renderHomework();
+}
+
+  
+  
 function createBlockEl(block,idx,total) {
   const div = document.createElement('div');
   div.className = 'block';
