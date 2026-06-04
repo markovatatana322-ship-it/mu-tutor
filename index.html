@@ -179,12 +179,12 @@
       <button class="tab-btn" onclick="setAuthTab('student')">Ученик</button>
     </div>
     <div id="tab-tutor">
-      <div class="field"><label>Мастер-пароль</label><input type="password" id="tutor-pass" placeholder="Ваш пароль" onkeydown="if(e.key==='Enter')loginTutor()"></div>
+      <div class="field"><label>Мастер-пароль</label><input type="password" id="tutor-pass" placeholder="Ваш пароль" onkeydown="if(event.key==='Enter') loginTutor()"></div>
       <button class="btn-primary" onclick="loginTutor()">Войти как репетитор</button>
     </div>
     <div id="tab-student" style="display:none">
       <div class="field"><label>Логин ученика</label><input type="text" id="stu-login" placeholder="Например: ivanov"></div>
-      <div class="field"><label>Пароль</label><input type="password" id="stu-pass" placeholder="Пароль"></div>
+      <div class="field"><label>Пароль</label><input type="password" id="stu-pass" placeholder="Пароль" onkeydown="if(event.key==='Enter') loginTutor()"></div>
       <button class="btn-primary" onclick="loginStudent()">Войти</button>
     </div>
     <div id="auth-error" class="error-msg"></div>
@@ -237,8 +237,8 @@
             <button class="tool-btn" onclick="addBlock('image')">🖼 Картинка</button>
             <button class="tool-btn" onclick="addBlock('video')">▶ Видео</button>
 
-            <button class="tool-btn" onclick="addBlock('audio')">🔊 Аудио</button> 
-            
+            <button class="tool-btn" onclick="addBlock('audio')">🔊 Аудио</button>
+
             <button class="tool-btn" onclick="addBlock('quiz')">❓ Тест</button>
             <button class="tool-btn" onclick="addBlock('callout')">💡 Заметка</button>
             <button class="tool-btn" onclick="addBlock('divider')">— Разделитель</button>
@@ -482,6 +482,16 @@ function createBlockEl(block,idx,total) {
         <input type="text" value="${esc(block.data.caption||'')}" placeholder="Необязательно" oninput="updateBlock('${block.id}','caption',this.value)">
       </div>`;
       break;
+
+      case 'audio':
+  content = `<div class="block-content">
+    <label>Ссылка на аудио (mp3, wav, ogg)</label>
+    <input type="text" value="${esc(block.data.url||'')}" placeholder="https://example.com/audio.mp3" oninput="updateBlock('${block.id}','url',this.value)">
+    <label style="margin-top:8px;">Подпись</label>
+    <input type="text" value="${esc(block.data.caption||'')}" placeholder="Необязательно" oninput="updateBlock('${block.id}','caption',this.value)">
+  </div>`;
+  break;
+
     case 'quiz':
       const opts = block.data.options || ['','','',''];
       const correct = block.data.correct || 0;
@@ -539,6 +549,9 @@ function addBlock(type) {
     formula: { tex:'' },
     image: { url:'', caption:'' },
     video: { url:'', caption:'' },
+
+    audio: { url:'', caption:'' },
+
     quiz: { question:'', options:['','','',''], correct:0, hint:'' },
     callout: { text:'' },
     divider: {},
@@ -695,14 +708,28 @@ function createViewBlock(block) {
           ${block.data.caption?`<p class="img-caption">${esc(block.data.caption)}</p>`:''}`;
       }
       break;
-    case 'video': {
-      const vid = ytId(block.data.url||'');
-      if (vid) {
-        div.innerHTML = `<div class="video-wrap"><iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen frameborder="0"></iframe></div>
-          ${block.data.caption?`<p class="img-caption" style="margin-top:6px">${esc(block.data.caption)}</p>`:''}`;
-      }
-      break;
-    }
+
+   case 'video': {
+  const vid = ytId(block.data.url||'');
+  if (vid) {
+    div.innerHTML = `<div class="video-wrap">
+      <iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen frameborder="0"></iframe>
+    </div>
+    ${block.data.caption ? `<p class="img-caption" style="margin-top:6px">${esc(block.data.caption)}</p>` : ''}`;
+  }
+  break;
+}
+
+case 'audio': {
+  if (block.data.url) {
+    div.innerHTML = `<div class="audio-block">
+      <audio controls src="${esc(block.data.url)}"></audio>
+      ${block.data.caption ? `<p class="img-caption">${esc(block.data.caption)}</p>` : ''}
+    </div>`;
+  }
+  break;
+}
+
     case 'quiz': {
       const qid = 'quiz-' + block.id;
       const opts = block.data.options||[];
