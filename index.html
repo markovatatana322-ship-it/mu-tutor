@@ -283,18 +283,38 @@
 // ============================================================
 const MASTER_PASS = 'yyjjrt'; // ← СМЕНИТЕ на свой пароль
 const DEMO_STUDENTS = [
-  { name: 'Иванова Аня', login: 'anya', password: 'math1', blocks: [
-    { id: 'b1', type: 'heading', data: { text: 'Тема: Квадратные уравнения', level: 'h2' } },
-    { id: 'b2', type: 'text', data: { text: 'Квадратное уравнение — это уравнение вида ax² + bx + c = 0, где a ≠ 0. Решается через дискриминант.' } },
-    { id: 'b3', type: 'formula', data: { tex: 'D = b^2 - 4ac' } },
-    { id: 'b4', type: 'quiz', data: { question: 'Чему равен дискриминант уравнения x² - 5x + 6 = 0?', options: ['0', '1', '-1', '1'], correct: 1, hint: '' } },
-  ]   homeworks: []},
-  { name: 'Петров Коля', login: 'kolya', password: 'geom2', blocks: [
-    { id: 'c1', type: 'heading', data: { text: 'Тема: Теорема Пифагора', level: 'h2' } },
-    { id: 'c2', type: 'callout', data: { text: 'В прямоугольном треугольнике квадрат гипотенузы равен сумме квадратов катетов.' } },
-    { id: 'c3', type: 'formula', data: { tex: 'a^2 + b^2 = c^2' } },
-  ]    homeworks: []}
-    { name: 'Иванова Алиса', login: 'alisa', password: 'uukkrt', blocks: []   homeworks: []},
+  {
+    name: 'Иванова Аня',
+    login: 'anya',
+    password: 'math1',
+    blocks: [
+      { id: 'b1', type: 'heading', data: { text: 'Тема: Квадратные уравнения', level: 'h2' } },
+      { id: 'b2', type: 'text', data: { text: 'Квадратное уравнение — это уравнение вида ax² + bx + c = 0, где a ≠ 0. Решается через дискриминант.' } },
+      { id: 'b3', type: 'formula', data: { tex: 'D = b^2 - 4ac' } },
+      { id: 'b4', type: 'quiz', data: { question: 'Чему равен дискриминант уравнения x² - 5x + 6 = 0?', options: ['0', '1', '-1', '4'], correct: 3, hint: '' } }
+    ],
+    homeworks: []
+  },
+
+  {
+    name: 'Петров Коля',
+    login: 'kolya',
+    password: 'geom2',
+    blocks: [
+      { id: 'c1', type: 'heading', data: { text: 'Тема: Теорема Пифагора', level: 'h2' } },
+      { id: 'c2', type: 'callout', data: { text: 'В прямоугольном треугольнике квадрат гипотенузы равен сумме квадратов катетов.' } },
+      { id: 'c3', type: 'formula', data: { tex: 'a^2 + b^2 = c^2' } }
+    ],
+    homeworks: []
+  },
+
+  {
+    name: 'Иванова Алиса',
+    login: 'alisa',
+    password: 'uukkrt',
+    blocks: [],
+    homeworks: []
+  }
 ];
 
 function getData() {
